@@ -1,29 +1,17 @@
 require("dotenv").config();
-const fs = require("fs");
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const express = require("express");
 const fetch = require("node-fetch");
-
+const connectDB = require("./db");
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const app = express();
 
 app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
-const DB_FILE = "./db.json";
 
 // ---- Datenbank Helper ----
-function ensureDB() {
-  if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({ guilds: [] }, null, 2));
-  }
-}
 
-function loadDB() {
-  ensureDB();
-  return JSON.parse(fs.readFileSync(DB_FILE));
-}
-function saveDB(data) { fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2)); }
 
 // ---- Geocoding ----
 async function geocode(city) {
@@ -55,10 +43,10 @@ async function geocode(city) {
 
 // ---- Discord Commands ----
 const commands = [
-  new SlashCommandBuilder().setName("setlocation").setDescription("Setze deine Stadt")
-    .addStringOption(o => o.setName("city").setDescription("Stadt + Land").setRequired(true)),
-  new SlashCommandBuilder().setName("map").setDescription("Zeigt die Weltkarte"),
-  new SlashCommandBuilder().setName("removelocation").setDescription("Löscht deine gespeicherte Location")
+  new SlashCommandBuilder().setName("setlocation").setDescription("Put in your city")
+    .addStringOption(o => o.setName("city").setDescription("City and country").setRequired(true)),
+  new SlashCommandBuilder().setName("map").setDescription("Show the world map"),
+  new SlashCommandBuilder().setName("removelocation").setDescription("Delete your location")
 ].map(c => c.toJSON());
 
 // Register Commands
@@ -68,12 +56,9 @@ const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  const db = loadDB();
+const db = await connectDB();
+const users = db.collection("users");
   const guildId = interaction.guildId;
-  const guildName = interaction.guild.name;
-
-  if (!db.guilds[guildId]) db.guilds[guildId] = { name: guildName, users: [] };
-  const guild = db.guilds[guildId];
 
   if (interaction.commandName === "setlocation") {
     const city = interaction.options.getString("city");
@@ -85,40 +70,50 @@ client.on("interactionCreate", async interaction => {
     const coloredRole = member.roles.cache.filter(r => r.color !== 0).sort((a,b)=>b.position-a.position).first();
     const roleColor = coloredRole ? "#" + coloredRole.color.toString(16).padStart(6,"0") : "#2ecc71";
 
-    guild.users = guild.users.filter(u => u.id !== interaction.user.id);
-    guild.users.push({
-      id: interaction.user.id,
-      name: interaction.member.displayName,
-      username: interaction.user.username,
-      city,
+	
+await users.updateOne(
+  { userId: interaction.user.id, guildId: interaction.guild.id },
+  {
+    $set: {
+      username: interaction.member.displayName,
+      location: city,
       lat: geo.lat,
       lon: geo.lon,
-      color: roleColor
-    });
-
-    saveDB(db);
+	  color: roleColor
+    }
+  },
+  { upsert: true }
+);
     interaction.reply(`📍 Standort gespeichert: ${city}`);
   }
 
   if (interaction.commandName === "removelocation") {
-    guild.users = guild.users.filter(u => u.id !== interaction.user.id);
-    saveDB(db);
+	const db = await connectDB();
+	
+await db.collection("users").deleteOne({
+  userId
+  guildId
+  }};
     interaction.reply("🗑️ Standort gelöscht");
-  }
-
+	
   if (interaction.commandName === "map") {
     interaction.reply(`🌍 Karte: https://wyoucomefrom.onrender.com/?guild=${guildId}`);
   }
 });
 
 // ---- API Endpoint ----
-app.get("/locations/:guildId", (req,res)=>{
-  const db = loadDB();
-  const guild = db.guilds[req.params.guildId];
-  if (!guild) return res.json([]);
-  res.json(guild.users);
+const connectDB = require("./db");
+
+app.get("/locations", async (req, res) => {
+  const db = await connectDB();
+  const users = db.collection("users");
+
+  const data = await users.find().toArray();
+  res.json(data);
 });
 
 // ---- Start Discord + Server ----
-client.login(process.env.DISCORD_TOKEN);
+
 app.listen(PORT, ()=>console.log(`Server läuft auf Port ${PORT}`));
+
+client.login(process.env.DISCORD_TOKEN);
