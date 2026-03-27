@@ -80,7 +80,7 @@ client.on("interactionCreate", async interaction => {
       {
         $set: {
           username: interaction.member.displayName,
-          coords.location,
+          location,
           lat: parseFloat(coords.lat),
           lon: parseFloat(coords.lon)
         }
