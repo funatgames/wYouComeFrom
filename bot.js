@@ -1,4 +1,9 @@
 require("dotenv").config();
+const fs = require("fs");
+
+if (!fs.existsSync("./db.json")) {
+  fs.writeFileSync("./db.json", JSON.stringify({ guilds: [] }, null, 2));
+}
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const express = require("express");
 const fs = require("fs");
