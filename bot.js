@@ -96,7 +96,7 @@ await db.collection("users").deleteOne({ userId: interaction.user.id, guildId: i
   if (interaction.commandName === "map") {
     interaction.reply(`🌍 Karte: https://wyoucomefrom.onrender.com/?guild=${guildId}`);
   }
-});
+};
 
 // ---- API Endpoint ----
 const connectDB = require("./db");
