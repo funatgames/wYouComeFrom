@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Community Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
+
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script>
+        const map = L.map('map').setView([20, 0], 2);
+        const markers = L.markerClusterGroup();
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        const params = new URLSearchParams(window.location.search);
+        const guildId = params.get("guild");
+
+        fetch("/locations/" + guildId)
+            .then(res => res.json())
+            .then(users => {
+                const heatPoints = [];
+                users.forEach(u => {
+                    const icon = L.divIcon({
+                        className: "custom-marker",
+                        html: `<div style="
+              background:${u.color};
+              width:18px;
+              height:18px;
+              border-radius:50%;
+              border:2px solid white;
+              box-shadow:0 0 6px rgba(0,0,0,0.4);
+            "></div>`,
+                        iconSize: [18, 18]
+                    });
+
+                    const marker = L.marker([u.lat, u.lon], { icon })
+                        .bindPopup("<b>" + u.name + "</b><br>" + u.city);
+
+                    markers.addLayer(marker);
+                    // heatmap point
+                    heatPoints.push([u.lat, u.lon, 0.7]);
+                });
+                map.addLayer(markers);
+
+                const heat = L.heatLayer(heatPoints, {
+                    radius: 25,
+                    blur: 20,
+                    maxZoom: 5
+                });
+
+                map.addLayer(heat);
+            });
+    </script>
+</body>
+</html>
