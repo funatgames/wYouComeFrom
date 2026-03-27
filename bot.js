@@ -2,7 +2,6 @@ require("dotenv").config();
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const express = require("express");
 const fetch = require("node-fetch");
-const connectDB = require("./db");
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const app = express();
 
