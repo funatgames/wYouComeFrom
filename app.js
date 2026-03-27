@@ -99,7 +99,7 @@ client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "setlocation") {
-    const location = interaction.options.getString("location");
+    const location = interaction.options.getString("city");
 
     await interaction.reply("Searching location... 🌍");
 
