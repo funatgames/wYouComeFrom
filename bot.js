@@ -4,7 +4,6 @@ const DB_FILE = "./db.json";
 
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const express = require("express");
-const fs = require("fs");
 const fetch = require("node-fetch");
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
