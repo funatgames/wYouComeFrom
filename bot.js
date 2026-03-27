@@ -1,7 +1,5 @@
 require("dotenv").config();
 const fs = require("fs");
-const DB_FILE = "./db.json";
-
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const express = require("express");
 const fetch = require("node-fetch");
@@ -12,11 +10,12 @@ const app = express();
 app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
+const DB_FILE = "./db.json";
 
 // ---- Datenbank Helper ----
 function ensureDB() {
   if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({ todos: [] }, null, 2));
+    fs.writeFileSync(DB_FILE, JSON.stringify({ guilds: [] }, null, 2));
   }
 }
 
@@ -24,7 +23,7 @@ function loadDB() {
   ensureDB();
   return JSON.parse(fs.readFileSync(DB_FILE));
 }
-function saveDB(data) { fs.writeFileSync("./db.json", JSON.stringify(data, null, 2)); }
+function saveDB(data) { fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2)); }
 
 // ---- Geocoding ----
 async function geocode(city) {
