@@ -90,7 +90,7 @@ await users.updateOne(
   if (interaction.commandName === "removelocation") {
 	const db = await connectDB();
 	
-await db.collection("users").deleteOne({ userId: interaction.user.id, guildId: interaction.guild.id }};
+await db.collection("users").deleteOne({ userId: interaction.user.id, guildId: interaction.guild.id });
     interaction.reply("🗑️ Standort gelöscht");
 	
   if (interaction.commandName === "map") {
