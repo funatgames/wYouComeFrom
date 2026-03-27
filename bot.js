@@ -1,9 +1,7 @@
 require("dotenv").config();
 const fs = require("fs");
+const DB_FILE = "./db.json";
 
-if (!fs.existsSync("./db.json")) {
-  fs.writeFileSync("./db.json", JSON.stringify({ guilds: [] }, null, 2));
-}
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const express = require("express");
 const fs = require("fs");
@@ -17,9 +15,15 @@ app.use(express.static("public"));
 const PORT = process.env.PORT || 3000;
 
 // ---- Datenbank Helper ----
+function ensureDB() {
+  if (!fs.existsSync(DB_FILE)) {
+    fs.writeFileSync(DB_FILE, JSON.stringify({ todos: [] }, null, 2));
+  }
+}
+
 function loadDB() {
-  if (!fs.existsSync("./db.json")) fs.writeFileSync("./db.json", JSON.stringify({ guilds: {} }, null, 2));
-  return JSON.parse(fs.readFileSync("./db.json"));
+  ensureDB();
+  return JSON.parse(fs.readFileSync(DB_FILE));
 }
 function saveDB(data) { fs.writeFileSync("./db.json", JSON.stringify(data, null, 2)); }
 
