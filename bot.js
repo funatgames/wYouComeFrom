@@ -35,7 +35,7 @@ async function geocode(city) {
     const res = await fetch(url, {
       method: "GET",
       headers: {
-        "User-Agent": "DiscordWorldMapBot/1.0 (contact@example.com)",
+        "User-Agent": "DiscordWorldMapBot/1.0 (alex.klemm123@gmail.com)",
         "Accept": "application/json",
         "Accept-Language": "en"
       }
