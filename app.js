@@ -12,10 +12,17 @@ app.use(express.static("public"));
 ========================= */
 
 app.get("/locations", async (req, res) => {
-  const db = await connectDB();
-  const users = db.collection("users");
-  const data = await users.find().toArray();
-  res.json(data);
+  try {
+    const db = await connectDB();
+    const users = db.collection("users");
+
+    const data = await users.find({}).toArray();
+
+    res.json(data);
+  } catch (err) {
+    console.error("Locations API error:", err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 // ---- Start Discord + Server ----
@@ -73,7 +80,7 @@ client.on("interactionCreate", async interaction => {
       {
         $set: {
           username: interaction.member.displayName,
-          location,
+          coords.location,
           lat: parseFloat(coords.lat),
           lon: parseFloat(coords.lon)
         }
