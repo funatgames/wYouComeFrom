@@ -7,6 +7,41 @@ const connectDB = require("./db");
 const app = express();
 app.use(express.static("public"));
 
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
+
+const commands = [
+  new SlashCommandBuilder()
+    .setName("setlocation")
+    .setDescription("Setze deine Stadt")
+    .addStringOption(o =>
+      o.setName("city").setDescription("Stadt + Land").setRequired(true)),
+
+  new SlashCommandBuilder()
+    .setName("map")
+    .setDescription("Zeigt die Weltkarte"),
+
+  new SlashCommandBuilder()
+    .setName("removelocation")
+    .setDescription("Löscht deine gespeicherte Location")
+].map(cmd => cmd.toJSON());
+
+async function registerCommands() {
+  const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
+
+  try {
+    console.log("Registering slash commands...");
+
+    await rest.put(
+      Routes.applicationCommands(process.env.CLIENT_ID),
+      { body: commands }
+    );
+
+    console.log("Slash commands registered ✅");
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 /* =========================
    EXPRESS API
 ========================= */
@@ -55,8 +90,9 @@ async function geocode(location) {
   };
 }
 
-client.once("ready", () => {
+client.once("ready", async () => {
   console.log("Bot ready");
+  await registerCommands();
 });
 
 client.on("interactionCreate", async interaction => {
@@ -98,10 +134,25 @@ client.on("interactionCreate", async interaction => {
   }
   
   if (interaction.commandName === "removelocation") {
-	const db = await connectDB();
-	
-    await db.collection("users").deleteOne({ userId: interaction.user.id, guildId: interaction.guild.id });
-    interaction.reply("🗑️ Standort gelöscht");
+  const db = await connectDB();
+  const users = db.collection("users");
+
+  const result = await users.deleteOne({
+    userId: interaction.user.id,
+    guildId: interaction.guild.id
+  });
+
+  if (result.deletedCount === 0) {
+    return interaction.reply({
+      content: "❌ You don't have a location saved.",
+      ephemeral: true
+    });
+  }
+
+  interaction.reply({
+    content: "✅ Your location has been removed from the map.",
+    ephemeral: true
+  });
   }
 });
 
