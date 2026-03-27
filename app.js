@@ -99,11 +99,11 @@ client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "setlocation") {
-    const location = interaction.options.getString("city");
+    const city = interaction.options.getString("city");
 
     await interaction.reply("Searching location... 🌍");
 
-    const coords = await geocode(location);
+    const coords = await geocode(city);
     if (!coords) {
       return interaction.editReply("Location not found 😢");
     }
@@ -116,7 +116,7 @@ client.on("interactionCreate", async interaction => {
       {
         $set: {
           username: interaction.member.displayName,
-          location,
+          location: city,
           lat: parseFloat(coords.lat),
           lon: parseFloat(coords.lon)
         }
