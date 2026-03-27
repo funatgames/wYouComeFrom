@@ -97,6 +97,7 @@ await db.collection("users").deleteOne({ userId: interaction.user.id, guildId: i
     interaction.reply(`🌍 Karte: https://wyoucomefrom.onrender.com/?guild=${guildId}`);
   }
 };
+});
 
 // ---- API Endpoint ----
 const connectDB = require("./db");
@@ -110,7 +111,5 @@ app.get("/locations", async (req, res) => {
 });
 
 // ---- Start Discord + Server ----
-
-app.listen(PORT, ()=>console.log(`Server läuft auf Port ${PORT}`));
-
 client.login(process.env.DISCORD_TOKEN);
+app.listen(PORT, ()=>console.log(`Server läuft auf Port ${PORT}`));
