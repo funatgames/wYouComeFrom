@@ -1,13 +1,13 @@
 require("dotenv").config();
 const express = require("express");
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const fetch = require("node-fetch");
 const connectDB = require("./db");
 
 const app = express();
 app.use(express.static("public"));
 
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
+
 
 const commands = [
   new SlashCommandBuilder()
